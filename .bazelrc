@@ -130,3 +130,25 @@ try-import %workspace%/.configure.bazelrc
 
 # This bazelrc file can be used for user-specific custom build settings.
 try-import %workspace%/.user.bazelrc
+
+# --- Start of Block to Append ---
+
+# --- Custom Configuration for WebAssembly Build ---
+# This block defines a new configuration named 'wasm_build'.
+# When activated with --config=wasm_build, it applies all these settings.
+
+# Set the target CPU to wasm and specify the Emscripten toolchain.
+build:wasm_build --cpu=wasm
+build:wasm_build --crosstool_top=@emsdk//emscripten_toolchain:everything
+# Use the standard C++ toolchain for any host tools needed during the build.
+build:wasm_build --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+
+# Add compiler flags (copts) needed for compatibility.
+# This flag fixes a platform detection error in the Glog library.
+build:wasm_build --copt=-DGOOGLE_LOG_DLL_DECL=
+# This flag enables C++ exception handling, required by the SentencePiece library.
+build:wasm_build --copt=-fexceptions
+# This flag enables threading support in the C++ compiler.
+build:wasm_build --copt=-pthread
+
+# --- End of Block to Append ---

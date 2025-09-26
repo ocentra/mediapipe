@@ -910,3 +910,122 @@ http_archive(
     strip_prefix = "skia-226ae9d866748a2e68b6dbf114b37129c380a298/include/config",
     urls = ["https://github.com/google/skia/archive/226ae9d866748a2e68b6dbf114b37129c380a298.zip"],
 )
+
+# This rule downloads and sets up the Emscripten SDK (emsdk) for Bazel.
+# We are using a specific version from GitHub that is known to be accessible
+# and compatible with this project's build files.
+http_archive(
+    name = "emsdk",
+    # This sha256 checksum corresponds to the GitHub source archive.
+    sha256 = "6aa5394fab6c40a5eb4feae37d225263208ef651bf22af9f788568707a9975c3",
+    # The 'bazel' subdirectory within the archive contains the build rules.
+    strip_prefix = "emsdk-3.1.49/bazel",
+    # Download from the official GitHub tag archive.
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.49.zip"],
+    # This injects a complete BUILD file into the repository after it's
+    # downloaded. This is a critical step that makes the repository's internal
+    # .bzl files and platform definitions visible to the rest of our build,
+    # preventing "no such target" and "visibility" errors.
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+
+# Make the .bzl files visible to the WORKSPACE file for loading.
+exports_files([
+    "deps.bzl",
+    "emscripten_deps.bzl",
+    "revisions.bzl",
+    "toolchains.bzl",
+])
+
+config_setting(
+    name = "linux",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "linux_arm64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:arm64",
+    ],
+)
+
+config_setting(
+    name = "macos",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "macos_arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+filegroup(name = "empty")
+
+alias(
+    name = "compiler_files",
+    actual = select({
+        ":linux": "@emscripten_bin_linux//:compiler_files",
+        ":linux_arm64": "@emscripten_bin_linux_arm64//:compiler_files",
+        ":macos": "@emscripten_bin_mac//:compiler_files",
+        ":macos_arm64": "@emscripten_bin_mac_arm64//:compiler_files",
+        ":windows": "@emscripten_bin_win//:compiler_files",
+        "//conditions:default": ":empty",
+    }),
+)
+
+alias(
+    name = "linker_files",
+    actual = select({
+        ":linux": "@emscripten_bin_linux//:linker_files",
+        ":linux_arm64": "@emscripten_bin_linux_arm64//:linker_files",
+        ":macos": "@emscripten_bin_mac//:linker_files",
+        ":macos_arm64": "@emscripten_bin_mac_arm64//:linker_files",
+        ":windows": "@emscripten_bin_win//:linker_files",
+        "//conditions:default": ":empty",
+    }),
+)
+
+alias(
+    name = "ar_files",
+    actual = select({
+        ":linux": "@emscripten_bin_linux//:ar_files",
+        ":linux_arm64": "@emscripten_bin_linux_arm64//:ar_files",
+        ":macos": "@emscripten_bin_mac//:ar_files",
+        ":macos_arm64": "@emscripten_bin_mac_arm64//:ar_files",
+        ":windows": "@emscripten_bin_win//:ar_files",
+        "//conditions:default": ":empty",
+    }),
+)
+
+# Define the platform targets required by the Emscripten toolchain.
+platform(name = "platform_wasm", constraint_values = ["@platforms//cpu:wasm32"])
+platform(name = "platform_wasi", constraint_values = ["@platforms//cpu:wasm32", "@platforms//os:wasi"])
+""",
+)
+
+# These subsequent lines load the necessary functions from the newly defined
+# @emsdk repository and execute them to register the toolchain with Bazel.
+load("@emsdk//:deps.bzl", "deps")
+deps()
+load("@emsdk//:emscripten_deps.bzl", "emscripten_deps")
+emscripten_deps(emscripten_version = "3.1.49")
+load("@emsdk//:toolchains.bzl", "register_emscripten_toolchains")
+register_emscripten_toolchains()

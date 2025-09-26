@@ -108,7 +108,7 @@ genrule(
 
 mediapipe_ts_library(
     name = "run_script_helper",
-    srcs = ["run_script_helper.ts"],
+    srcs = [":run_script_genrule"],
 )
 
 jasmine_node_test(

@@ -26,16 +26,8 @@
       "./bazel-out/x64_windows-dbg/bin",
       "./bazel-out/x64_windows-fastbuild/bin",
       "./bazel-out/x64_windows-opt/bin",
-      "./bazel-out/darwin-dbg/bin",
-      "./bazel-out/darwin-fastbuild/bin",
-      "./bazel-out/darwin-opt/bin",
-      "./bazel-out/k8-dbg/bin",
-      "./bazel-out/k8-fastbuild/bin",
-      "./bazel-out/k8-opt/bin",
-      "./bazel-out/x64_windows-dbg/bin",
-      "./bazel-out/x64_windows-fastbuild/bin",
-      "./bazel-out/x64_windows-opt/bin",
-      "./bazel-out/k8-fastbuild-ST-4a519fd6d3e4/bin"
+      "./bazel-out/k8-fastbuild-ST-4a519fd6d3e4/bin",
+      "./bazel-out/wasm-fastbuild/bin"
     ]
   },
   "exclude": [
