@@ -1,0 +1,3 @@
+[submodule "MediaPipeRelease"]
+	path = MediaPipeRelease
+	url = https://github.com/ocentra/MediaPipeRelease.git
